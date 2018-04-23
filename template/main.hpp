@@ -4,6 +4,8 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <thread>
+#include <cstdlib>
+#include <ctime>
 
 #include "Pensioner.h"
 

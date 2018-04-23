@@ -2,30 +2,17 @@
 
 int main(int argc, char **argv)
 {
-	int size, tid;
+	int size, rank;
 	MPI_Status status;
 
 	MPI_Init(&argc, &argv);
 
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	MPI_Comm_rank(MPI_COMM_WORLD, &tid);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    Pensioner pensioner = new Pensioner(CLUB_SIZE);
+    Pensioner pensioner = new Pensioner();
 
-    przydzial_kwoty()
-
-    MPI_Send(&i, 1, MPI_INT, (tid+1), MSG_TAG, MPI_COMM_WORLD);
-    printf("# Send %d to %d\n", i, tid + 1);
-    MPI_Recv(&i, 1, MPI_INT, (size-1), MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-    printf("# Reciv number %d from %d\n", i, status.MPI_SOURCE);
-    printf("# FINISH!!!!\n");
-
-    MPI_Recv(&i, 1, MPI_INT, tid-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-    printf("### Reciv number %d from %d\n", i, status.MPI_SOURCE);
-    i += 1;
-    MPI_Send(&i, 1, MPI_INT, ((tid+1)%size), MSG_TAG, MPI_COMM_WORLD);
-    printf("### Send %d to %d\n", i, ((tid+1)%size));
-
+    pensioner.set_money_amount();  
 
 	MPI_Finalize();
 }

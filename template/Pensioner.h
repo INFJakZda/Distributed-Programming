@@ -18,6 +18,7 @@ class Pensioner {
         void asking();
         void thread_communication();
         void reset_me();
+        void go_to_club();
 
         bool* get_club_array();
         unsigned int get_money_amount();

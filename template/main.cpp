@@ -2,6 +2,8 @@
 
 int main(int argc, char **argv)
 {
+	srand(time(NULL));
+
 	int size, rank;
 	MPI_Status status;
 
@@ -16,21 +18,19 @@ int main(int argc, char **argv)
 		pensioner.set_money_amount();  
 
 		while(true){
-
-			pensioner.thread_communication();
 			if(pensioner.check_if_leader()) {
 				if(pensioner.get_group_money() > ENTRY_AMOUNT) {
-						
-						MPI_Send();
-						break;
-					}
-					else {
-						//dobierz kolejnych czlonków
-					}
-				else {
-					MPI_Recv();
+					pensioner.choose_club();
 					break;
 				}
+				else {
+					pensioner.thread_communication();
+
+				}
+			}
+			else {
+				MPI_Recv();
+				break;
 			}
 		}
 

@@ -12,7 +12,30 @@ int main(int argc, char **argv)
 
     Pensioner pensioner = new Pensioner();
 
-    pensioner.set_money_amount();  
+	while(true){
+		pensioner.set_money_amount();  
+
+		while(true){
+
+			pensioner.thread_communication();
+			if(pensioner.check_if_leader()) {
+				if(pensioner.get_group_money() > ENTRY_AMOUNT) {
+						
+						MPI_Send();
+						break;
+					}
+					else {
+						//dobierz kolejnych czlonków
+					}
+				else {
+					MPI_Recv();
+					break;
+				}
+			}
+		}
+
+		pensioner.reset_me();
+	}
 
 	MPI_Finalize();
 }

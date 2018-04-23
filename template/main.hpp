@@ -6,6 +6,8 @@
 #include <thread>
 #include <cstdlib>
 #include <ctime>
+#include <thread>
+#include <chrono>
 
 #include "Pensioner.h"
 
@@ -14,5 +16,8 @@
 #define PENSIONERS_NR 20
 #define CLUB_SIZE 50
 #define ENTRY_AMOUNT 100
+
+#define MSG_TAG_COMMUNICATION 100
+#define MSG_TAG_TEAM_COMMUNICATION 200
 
 #endif

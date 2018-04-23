@@ -17,10 +17,11 @@ class Pensioner {
         void listen();
         void asking();
         void thread_communication();
+        void reset_me();
 
         bool* get_club_array();
         unsigned int get_money_amount();
-        void set_money_amount(unsigned int);
+        void set_money_amount();
         bool check_if_leader();
         void set_group_money(unsigned int);
         unsigned int get_group_money();

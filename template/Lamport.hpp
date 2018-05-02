@@ -3,29 +3,18 @@
 
 class Lamport {
 private:
-	long long int timestamp;
-	int rank;
-	void timestamp_tick() {timestamp++;}
-
+	unsigned long long time_stamp;
+	
 public:
-	Lamport(int rank, long long initial = 0){ 
-        this->timestamp = _initial;
-        this->rank = _rank;
+	Lamport() { 
+        this->time_stamp = 0;
     }
 	
-	long long int get_timestamp() {
-		return this->timestamp;
+	unsigned long long get_time_stamp() {
+		return this->time_stamp;
 	}
 
-	int get_rank() {
-		return this->rank;
-	}
-
-	long long receive_timestamp(long long foreign_timestamp) {
-		this->timestamp = this->timestamp > foreign_timestamp ? this->timestamp : foreign_timestamp;
-		timestamp_tick();
-		return this->timestamp;
-	}
+	void time_stamp_tick() { this->times_tamp++; }
 };
 
 #endif

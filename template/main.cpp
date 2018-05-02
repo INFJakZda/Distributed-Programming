@@ -16,8 +16,10 @@ int main(int argc, char **argv)
 
 	while(true){
 		pensioner.set_money_amount();  
+		pensioner.lamport_time_stamp_tick();
 
-		while(true){
+		bool loop_control = true;
+		while(loop_control){
 			if(pensioner.check_if_leader()) {
 				if(pensioner.get_group_money() > ENTRY_AMOUNT) {
 					pensioner.choose_club();
@@ -29,12 +31,17 @@ int main(int argc, char **argv)
 				}
 			}
 			else {
-				MPI_Recv();
-				break;
+				pensioner.no_proc_leader();
 			}
-		}
 
+			if(pensioner.get_status() == ) {
+				loop_control = false;
+			}
+			
+			pensioner.lamport_time_stamp_tick();
+		}
 		pensioner.reset_me();
+		pensioner.lamport_time_stamp_tick();
 	}
 
 	MPI_Finalize();

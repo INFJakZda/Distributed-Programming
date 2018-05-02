@@ -58,6 +58,10 @@ bool Pensioner::check_if_leader() {
     return this->is_leader;
 }
 
+void Pensioner::set_as_leader(bool val) {
+    this->is_leader = val;
+}
+
 void Pensioner::set_group_money(unsigned int money) { 
     this->group_money = money;
 }

@@ -10,6 +10,7 @@
 #include <chrono>
 
 #include "Pensioner.h"
+#include "Lamport.hpp"
 
 #define ROOT 0
 #define MSG_TAG 100

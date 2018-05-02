@@ -24,6 +24,7 @@ class Pensioner {
         unsigned int get_money_amount();
         void set_money_amount();
         bool check_if_leader();
+        void set_as_leader(bool);
         void set_group_money(unsigned int);
         unsigned int get_group_money();
 }

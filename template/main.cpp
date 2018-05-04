@@ -23,25 +23,34 @@ int main(int argc, char **argv)
 			if(pensioner.check_if_leader()) {
 				if(pensioner.get_group_money() > ENTRY_AMOUNT) {
 					pensioner.choose_club();
-					break;
 				}
 				else {
 					pensioner.thread_communication();
-
 				}
+				pensioner.lamport_time_stamp_tick();
 			}
 			else {
 				pensioner.no_proc_leader();
 			}
 
-			if(pensioner.get_status() == ) {
-				loop_control = false;
+			if(pensioner.get_status() == STATUS_REMOVE_GROUP) {
+				pensioner.lamport_time_stamp_tick();
+				pensioner.sync_lamport_time_stamp();
 			}
+
+			if(pensioner.get_status() == STATUS_GO_TO_CLUB) {
+				pensioner.lamport_time_stamp_tick();
+				pensioner.go_to_club();
+			}
+
+			if(pensioner.get_status() == STATUS_FINISH) {
+				pensioner.lamport_time_stamp_tick();
+				pensioner.sync_lamport_time_stamp();
+				loop_control = false;
+			}		
 			
-			pensioner.lamport_time_stamp_tick();
 		}
-		pensioner.reset_me();
-		pensioner.lamport_time_stamp_tick();
+		pensioner.reset_me(--STATUS_REMOVE_GROUP);
 	}
 
 	MPI_Finalize();

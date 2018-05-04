@@ -2,9 +2,10 @@
 
 public Pensioner::Pensioner() {
     this->club_array = new bool[CLUB_SIZE] ();
-    this->pensioners_list = new int[PENSIONERS_NR] ();
     this->is_leader = true;
     this->lamport_time = new Lamport();
+    this->status = STATUS_NEUTRAL;
+    this->pensioners_status_list = new int[PENSIONERS_NR] ();
 }
 
 void Pensioner::grant_money() {
@@ -28,18 +29,29 @@ void Pensioner::proc_leader() {
 }
 
 void Pensioner::no_proc_leader() {
-
+    //answer to all questions
 }
 
-void Pensioner::reset_me() {
-    this->money_amount = 0;
-    this->group_money = 0;
-    this->is_leader = true;
-    for(int i = 0; i < CLUB_SIZE; i++)
-        this->club_array[i] = true;
-    for(int i = 0; i < PENSIONERS_NR; i++)
-        this->pensioners_list[i] = 0;
-    //std::this_thread::sleep_for(std::chrono::milliseconds(200));
+void Pensioner::reset_me(int arg) {
+    if(arg == STATUS_REMOVE_GROUP) {
+        this->group_money = 0;
+        this->is_leader = true;
+        
+        for(int i = 0; i < CLUB_SIZE; i++)
+            this->club_array[i] = false;
+        for(int i = 0; i < PENSIONERS_NR; i++)
+            this->pensioners_status_list[i] = PENSIONERS_STATUS_LIST_NO_ASKED;
+    }
+    else {
+        this->money_amount = 0;
+        this->group_money = 0;
+        this->is_leader = true;
+        for(int i = 0; i < CLUB_SIZE; i++)
+            this->club_array[i] = false;
+        for(int i = 0; i < PENSIONERS_NR; i++)
+            this->pensioners_status_list[i] = PENSIONERS_STATUS_LIST_NO_ASKED;
+        //std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
 }
 
 void Pensioner::choose_club() {
@@ -58,6 +70,10 @@ void Pensioner::lamport_time_stamp_tick() {
 
 unsigned long long get_lamport_time_stamp() {
     return this->lamport_time.get_time_stamp();
+}
+
+void sync_lamport_time_stamp(unsigned long long val) {
+    this->lamport_time.set_time_stamp(val);
 }
 
 unsigned int Pensioner::get_money_amount() { 

@@ -14,10 +14,6 @@ public:
 		return this->time_stamp;
 	}
 
-	void set_time_stamp(unsigned long long val) {
-		this->time_stamp = val;
-	}
-
 	void time_stamp_tick() { this->times_tamp++; }
 };
 

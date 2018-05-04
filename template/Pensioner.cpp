@@ -1,19 +1,58 @@
 #include "Pensioner.h"
 
-public Pensioner::Pensioner() {
+public Pensioner::Pensioner(int id) {
     this->club_array = new bool[CLUB_SIZE] ();
     this->is_leader = true;
     this->lamport_time = new Lamport();
     this->status = STATUS_NEUTRAL;
     this->pensioners_status_list = new int[PENSIONERS_NR] ();
+    this->is_club_selected = false;
+    this->my_id = id;
 }
 
 void Pensioner::grant_money() {
 
 }
 
-void Pensioner::listen() {
+void Pensioner::code_func_control(int code, int source_id) {
+    switch(code) {
+        case MSG_CODE_ASK_TO_JOIN:
+            break;
+        case MSG_CODE_CONFIRM_JOIN:
+            break;
+        case MSG_CODE_REJECT_JOIN:
+            break;
+        case MSG_CODE_RMOVE_GROUP:
+            break;
+        case MSG_CODE_CHOOSE_CLUB:
+            break;
+        case MSG_CODE_ASK_ABOUT_CLUB:
+            break;
+        case MSG_CODE_EXIT_CLUB:
+            break;
+        case MSG_CODE_CONFIRM_RECV_MSG:
+            break;
+        case MSG_CODE_ASK_TO_JOIN:
+            break;
+        case MSG_CODE_SET_LEADER:
+            //recive leader id
+            //this->my_leader_id = 
+            break;
+        default:
+            //send MSG_CODE_UNDEFINE_CODE;
+            break;
+    }
+    //MPI_Send(,,MPI_INT, status.MPI_SOURCE, DEFAULT_TAG_VAL, MPI_COMM_WORLD);
+}
 
+
+void Pensioner::listen() {
+    int code;
+    MPI_Status status;
+
+    MPI_Recv(&code, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+    //source id in status.MPI_SOURCE
+    code_func_control(code, status.MPI_SOURCE);
 }
 
 void Pensioner::asking() {
@@ -29,7 +68,13 @@ void Pensioner::proc_leader() {
 }
 
 void Pensioner::no_proc_leader() {
-    //answer to all questions
+    int code;
+    MPI_Status status;
+
+    MPI_Recv(&code, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+    //source id in status.MPI_SOURCE
+    //MPI_Send(,,MPI_INT, status.MPI_SOURCE, DEFAULT_TAG_VAL, MPI_COMM_WORLD);
+    code_func_control(code, status.MPI_SOURCE);
 }
 
 void Pensioner::reset_me(int arg) {
@@ -70,10 +115,6 @@ void Pensioner::lamport_time_stamp_tick() {
 
 unsigned long long get_lamport_time_stamp() {
     return this->lamport_time.get_time_stamp();
-}
-
-void sync_lamport_time_stamp(unsigned long long val) {
-    this->lamport_time.set_time_stamp(val);
 }
 
 unsigned int Pensioner::get_money_amount() { 

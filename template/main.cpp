@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    Pensioner pensioner = new Pensioner();
+    Pensioner pensioner = new Pensioner(rank);
 
 	while(true){
 		pensioner.set_money_amount();  
@@ -27,7 +27,6 @@ int main(int argc, char **argv)
 				else {
 					pensioner.thread_communication();
 				}
-				pensioner.lamport_time_stamp_tick();
 			}
 			else {
 				pensioner.no_proc_leader();
@@ -35,7 +34,6 @@ int main(int argc, char **argv)
 
 			if(pensioner.get_status() == STATUS_REMOVE_GROUP) {
 				pensioner.lamport_time_stamp_tick();
-				pensioner.sync_lamport_time_stamp();
 			}
 
 			if(pensioner.get_status() == STATUS_GO_TO_CLUB) {
@@ -45,7 +43,6 @@ int main(int argc, char **argv)
 
 			if(pensioner.get_status() == STATUS_FINISH) {
 				pensioner.lamport_time_stamp_tick();
-				pensioner.sync_lamport_time_stamp();
 				loop_control = false;
 			}		
 			

@@ -23,19 +23,31 @@
 #define MSG_CODE_REJECT_JOIN 2
 #define MSG_CODE_RMOVE_GROUP 3
 #define MSG_CODE_CHOOSE_CLUB 4
-#define MSG_CODE_EXIT_CLUB 5
+#define MSG_CODE_ASK_ABOUT_CLUB 5
+#define MSG_CODE_EXIT_CLUB 6
+#define MSG_CODE_CONFIRM_RECV_MSG 7
+#define MSG_CODE_UNDEFINE_CODE 66
 #define MSG_CODE_SET_LEADER 666
+
+#define DEFAULT_TAG_VAL 100
 
 class Pensioner {
     private: 
         unsigned int money_amount;
         bool is_leader;
         unsigned int group_money;
-        Lamport lamport_time;
-        unsigned int status;
-        unsigned int my_leader_id;
         
-    public:
+        Lamport lamport_time;
+        
+        unsigned int status;
+        
+        unsigned int my_leader_id;
+        unsigned int my_id;
+        std::vector <unsigned int> group_members_id;
+        
+        bool is_club_selected;
+        int selected_club_id;
+
         bool* club_array;
         int* pensioners_status_list;
 
@@ -52,14 +64,20 @@ class Pensioner {
 
         void lamport_time_stamp_tick();
         unsigned long long get_lamport_time_stamp();
-        void sync_lamport_time_stamp();
+        
         unsigned int get_money_amount();
         void set_money_amount();
+        
         bool check_if_leader();
         void set_as_leader(bool);
+        
         void set_group_money(unsigned int);
         unsigned int get_group_money();
+        
         void set_status(unsigned int);
         unsigned int get_status();
+
+    private:
+        void code_func_control(int, int);
 }
 #endif

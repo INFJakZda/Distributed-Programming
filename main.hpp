@@ -7,8 +7,12 @@
 #include <cstdlib>
 #include <ctime>
 #include <vector>
-#include <thread>
 #include <chrono>
+#include <pthread.h>
+#include <stdlib.h>
+#include <time.h>
+#include <limits.h>
+#include <unistd.h>
 
 #include "Pensioner.h"
 

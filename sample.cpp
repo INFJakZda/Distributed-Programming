@@ -10,6 +10,7 @@
 #include <time.h>
 #include <limits.h>
 #include <unistd.h>
+#include <signal.h>
 
 #define PENSIONERS_NR 20
 #define CLUB_SIZE 50
@@ -52,6 +53,7 @@ class Pensioner {
         int selected_club_id;
         Lamport lamport_time;
         std::vector <unsigned int> group_members_id;
+		bool thread_kill;
 
     public:
         Pensioner();
@@ -59,8 +61,8 @@ class Pensioner {
         void grant_money();
         void listen();
         void asking();
-        void proc_leader();
-        void no_proc_leader();
+		void proc_leader();
+		void no_proc_leader();
         void reset_me(int);
         void go_to_club();
 
@@ -81,6 +83,7 @@ class Pensioner {
 
     private:
         void code_func_control(int, int);
+		void signal_callback_handler(int);
 }
 
 class Lamport {
@@ -113,7 +116,7 @@ int main(int argc, char **argv)
 
     Pensioner pensioner = new Pensioner(rank);
 
-    start_listening(); //inny wątek do słuchania
+    std::thread pensioner_thread(&Pensioner::listen, &pensioner);	
 
 	while(true){
 		pensioner.set_money_amount();  
@@ -126,7 +129,7 @@ int main(int argc, char **argv)
 					pensioner.choose_club();
 				}
 				else {
-					pensioner.thread_communication();
+					pensioner.proc_leader();
 				}
 			}
 			else {
@@ -150,6 +153,8 @@ int main(int argc, char **argv)
 		}
 		pensioner.reset_me(--STATUS_REMOVE_GROUP);
 	}
+
+	pensioner_thread.join();
 
 	MPI_Finalize();
 }

@@ -8,6 +8,7 @@ public Pensioner::Pensioner(int id) {
     this->pensioners_status_list = new int[PENSIONERS_NR] ();
     this->is_club_selected = false;
     this->my_id = id;
+    this->thread_kill = false;
 }
 
 void Pensioner::grant_money() {
@@ -45,14 +46,21 @@ void Pensioner::code_func_control(int code, int source_id) {
     //MPI_Send(,,MPI_INT, status.MPI_SOURCE, DEFAULT_TAG_VAL, MPI_COMM_WORLD);
 }
 
+void Pensioner::signal_callback_handler(int signum)
+{
+    std::cout << "#DEBUG: Signum = " << signum << std""endl;
+    thread->thread_kill = true;    
+}
 
 void Pensioner::listen() {
     int code;
     MPI_Status status;
 
-    MPI_Recv(&code, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-    //source id in status.MPI_SOURCE
-    code_func_control(code, status.MPI_SOURCE);
+    while(!(this->thread_kill)) {
+        MPI_Recv(&code, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        //source id in status.MPI_SOURCE
+        code_func_control(code, status.MPI_SOURCE);
+    }
 }
 
 void Pensioner::asking() {
@@ -60,21 +68,11 @@ void Pensioner::asking() {
 }
 
 void Pensioner::proc_leader() {
-    std::thread t1(this->listen);
-    std::thread t2(this->asking);
 
-    t1.join();
-    t2.join();
 }
 
 void Pensioner::no_proc_leader() {
-    int code;
-    MPI_Status status;
-
-    MPI_Recv(&code, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-    //source id in status.MPI_SOURCE
-    //MPI_Send(,,MPI_INT, status.MPI_SOURCE, DEFAULT_TAG_VAL, MPI_COMM_WORLD);
-    code_func_control(code, status.MPI_SOURCE);
+    
 }
 
 void Pensioner::reset_me(int arg) {

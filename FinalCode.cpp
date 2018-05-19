@@ -19,8 +19,9 @@
 #define STATUS_NEUTRAL 0
 #define STATUS_IN_GROUP 1
 #define STATUS_REMOVE_GROUP 2
-#define STATUS_GO_TO_CLUB 3
-#define STATUS_FINISH 4
+#define STATUS_CHOOSE_CLUB 4
+#define STATUS_GO_TO_CLUB 4
+#define STATUS_FINISH 5
 
 #define PENSIONERS_STATUS_LIST_NO_ASKED 0
 #define PENSIONERS_STATUS_LIST_IN_MY_GROUP 1
@@ -62,7 +63,6 @@ class Pensioner {
         void listen();
         void asking();
 		void proc_leader();
-		void no_proc_leader();
         void reset_me(int);
         void go_to_club();
 
@@ -119,41 +119,45 @@ int main(int argc, char **argv)
 
     std::thread pensioner_thread(&Pensioner::listen, &pensioner);	
 
-	while(true){
-		pensioner.set_money_amount();  
-		pensioner.lamport_time_stamp_tick();
+    pensioner.set_money_amount();  
+    pensioner.lamport_time_stamp_tick();
 
-		bool loop_control = true;
-		while(loop_control){
-			if(pensioner.check_if_leader()) {
-				if(pensioner.get_group_money() > ENTRY_AMOUNT) {
-					pensioner.choose_club();
-				}
-				else {
-					pensioner.proc_leader();
-				}
-			}
-			else {
-				pensioner.no_proc_leader();
-			}
+    bool loop_control = true;
+    while(loop_control){
+        
+        if(pensioner.check_if_leader()) {
+            if(pensioner.get_group_money() >= ENTRY_AMOUNT) {
+                pensioner.choose_club();
+            }
+            else {
+                pensioner.proc_leader();
+            }
+        }
 
-			if(pensioner.get_status() == STATUS_REMOVE_GROUP) {
-				pensioner.lamport_time_stamp_tick();
-			}
+        if(pensioner.get_status() == STATUS_IN_GROUP) {
+            pensioner.lamport_time_stamp_tick();
+        }
+        
+        if(pensioner.get_status() == STATUS_REMOVE_GROUP) {
+            pensioner.lamport_time_stamp_tick();
+        }
 
-			if(pensioner.get_status() == STATUS_GO_TO_CLUB) {
-				pensioner.lamport_time_stamp_tick();
-				pensioner.go_to_club();
-			}
+        if(pensioner.get_status() == STATUS_CHOOSE_CLUB) {
+            pensioner.lamport_time_stamp_tick();
+        }
 
-			if(pensioner.get_status() == STATUS_FINISH) {
-				pensioner.lamport_time_stamp_tick();
-				loop_control = false;
-			}		
-			
-		}
-		pensioner.reset_me(--STATUS_REMOVE_GROUP);
-	}
+        if(pensioner.get_status() == STATUS_GO_TO_CLUB) {
+            pensioner.lamport_time_stamp_tick();
+            pensioner.go_to_club();
+        }
+
+        if(pensioner.get_status() == STATUS_FINISH) {
+            pensioner.lamport_time_stamp_tick();
+            loop_control = false;
+        }		
+        
+    }
+    pensioner.reset_me(--STATUS_REMOVE_GROUP);
 
 	pensioner_thread.join();
 
@@ -232,10 +236,6 @@ void Pensioner::asking() {
 
 void Pensioner::proc_leader() {
 
-}
-
-void Pensioner::no_proc_leader() {
-    
 }
 
 void Pensioner::reset_me(int arg) {

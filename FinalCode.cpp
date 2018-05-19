@@ -3,29 +3,32 @@
 #include <thread>
 #include <cstdlib>
 #include <ctime>
-#include <vector>
 #include <chrono>
-#include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
 #include <unistd.h>
-#include <signal.h>
+#include <iostream>
+#include <mutex>
+#include <condition_variable>
 
 #define PENSIONERS_NR 20
 #define CLUB_SIZE 50
 #define ENTRY_AMOUNT 100
 
 #define STATUS_NEUTRAL 0
-#define STATUS_IN_GROUP 1
-#define STATUS_REMOVE_GROUP 2
-#define STATUS_CHOOSE_CLUB 4
-#define STATUS_GO_TO_CLUB 4
-#define STATUS_FINISH 5
+#define STATUS_ASK 1
+#define STATUS_BE__ASKED 2
+#define STATUS_IN_GROUP 3
+#define STATUS_REMOVE_GROUP 4
+#define STATUS_CHOOSE_CLUB 5
+#define STATUS_GO_TO_CLUB 6
+#define STATUS_FINISH 7
 
 #define PENSIONERS_STATUS_LIST_NO_ASKED 0
-#define PENSIONERS_STATUS_LIST_IN_MY_GROUP 1
-#define PENSIONERS_STATUS_LIST_REJECTED 2
+#define PENSIONERS_STATUS_LIST_ASKED 1
+#define PENSIONERS_STATUS_LIST_IN_MY_GROUP 2
+#define PENSIONERS_STATUS_LIST_REJECTED 3
 
 #define MSG_CODE_ASK_TO_JOIN 0
 #define MSG_CODE_CONFIRM_JOIN 1
@@ -47,43 +50,34 @@ class Pensioner {
         unsigned int group_money;
         unsigned int my_leader_id;
         unsigned int my_id;
-        bool is_leader;
         bool is_club_selected;
         bool* club_array;
         int* pensioners_status_list;
         int selected_club_id;
         Lamport lamport_time;
-        std::vector <unsigned int> group_members_id;
-		bool thread_kill;
+        std::mutex mutx;
+        std::condition_variable cond_var;
+        bool ready_cond_var;
 
     public:
         Pensioner();
-
         void grant_money();
         void listen();
-        void asking();
 		void proc_leader();
         void reset_me(int);
         void go_to_club();
-
         void lamport_time_stamp_tick();
-        unsigned long long get_lamport_time_stamp();
-        
+        unsigned long long get_lamport_time_stamp();    
         unsigned int get_money_amount();
-        void set_money_amount();
-        
+        void set_money_amount();        
         bool check_if_leader();
-        void set_as_leader(bool);
-        
+        void set_as_leader(bool);        
         void set_group_money(unsigned int);
-        unsigned int get_group_money();
-        
+        unsigned int get_group_money();        
         void set_status(unsigned int);
         unsigned int get_status();
-
     private:
-        void code_func_control(int, int);
-		void signal_callback_handler(int);
+        int code_func_control(int, int);
 }
 
 class Lamport {
@@ -102,7 +96,7 @@ public:
 	void time_stamp_tick() { this->times_tamp++; }
 };
 
-/*  *************************** MAIN ************************************************ */
+/*  *************************** MAIN ********************************** */
 int main(int argc, char **argv)
 {
 	srand(time(NULL));
@@ -111,17 +105,14 @@ int main(int argc, char **argv)
 	MPI_Status status;
 
 	MPI_Init(&argc, &argv);
-
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+	std::cout << rank << ": start" << std::endl;
     Pensioner pensioner = new Pensioner(rank);
-
     std::thread pensioner_thread(&Pensioner::listen, &pensioner);	
-
     pensioner.set_money_amount();  
     pensioner.lamport_time_stamp_tick();
-
     bool loop_control = true;
     while(loop_control){
         
@@ -136,103 +127,113 @@ int main(int argc, char **argv)
 
         if(pensioner.get_status() == STATUS_IN_GROUP) {
             pensioner.lamport_time_stamp_tick();
-        }
-        
-        if(pensioner.get_status() == STATUS_REMOVE_GROUP) {
+        } 
+        else if(pensioner.get_status() == STATUS_REMOVE_GROUP) {
             pensioner.lamport_time_stamp_tick();
         }
-
-        if(pensioner.get_status() == STATUS_CHOOSE_CLUB) {
+        else if(pensioner.get_status() == STATUS_CHOOSE_CLUB) {
             pensioner.lamport_time_stamp_tick();
         }
-
-        if(pensioner.get_status() == STATUS_GO_TO_CLUB) {
+        else if(pensioner.get_status() == STATUS_GO_TO_CLUB) {
             pensioner.lamport_time_stamp_tick();
             pensioner.go_to_club();
         }
-
-        if(pensioner.get_status() == STATUS_FINISH) {
+		else if(pensioner.get_status() == STATUS_FINISH) {
             pensioner.lamport_time_stamp_tick();
             loop_control = false;
         }		
         
     }
     pensioner.reset_me(--STATUS_REMOVE_GROUP);
-
+    MPI_Send(&rank, 1,MPI_INT, rank, DEFAULT_TAG_VAL, MPI_COMM_WORLD);
 	pensioner_thread.join();
+	std::cout << rank << ": finish" << std::endl;
 
 	MPI_Finalize();
 }
 
-/* *************************************************************** */
+/* ************************** MAIN ************************************* */
 
 
 public Pensioner::Pensioner(int id) {
     this->club_array = new bool[CLUB_SIZE] ();
-    this->is_leader = true;
     this->lamport_time = new Lamport();
     this->status = STATUS_NEUTRAL;
     this->pensioners_status_list = new int[PENSIONERS_NR] ();
     this->is_club_selected = false;
-    this->my_id = id;
-    this->thread_kill = false;
+    this->my_leader_id = this->my_id = id;
+    this->ready_cond_var = false;
 }
 
-void Pensioner::grant_money() {
 
-}
-
-void Pensioner::code_func_control(int code, int source_id) {
+int Pensioner::code_func_control(int code, int source_id) {
+    if(source_id == this->my_id) {
+    	return 0;
+    }
     switch(code) {
         case MSG_CODE_ASK_TO_JOIN:
+        	if((this->status == STATUS_NEUTRAL) || (this->status == STATUS_ASK)) {
+        		// Process
+        	}
+        	else {
+        		// REJECT
+        	}
             break;
+
         case MSG_CODE_CONFIRM_JOIN:
+        	this->status = STATUS_IN_GROUP;
             break;
+
         case MSG_CODE_REJECT_JOIN:
+        	this->pensioners_status_list[source_id] = PENSIONERS_STATUS_LIST_REJECTED;
             break;
+
         case MSG_CODE_RMOVE_GROUP:
+        	this->status = STATUS_REMOVE_GROUP;
             break;
+
         case MSG_CODE_CHOOSE_CLUB:
+           this->status = STATUS_CHOOSE_CLUB;
             break;
-        case MSG_CODE_ASK_ABOUT_CLUB:
-            break;
+
         case MSG_CODE_EXIT_CLUB:
+        	this->status = STATUS_FINISH;
             break;
+
         case MSG_CODE_CONFIRM_RECV_MSG:
             break;
-        case MSG_CODE_ASK_TO_JOIN:
-            break;
+
         case MSG_CODE_SET_LEADER:
-            //recive leader id
-            //this->my_leader_id = 
+            if(my_id < source_id) {
+            	this->my_leader_id = source_id;
+            }
+            else {
+            	this->my_leader_id = my_id;
+            } 
             break;
+
         default:
-            //send MSG_CODE_UNDEFINE_CODE;
+            std::cout << "#_" << this->my_id << " : MSG_CODE_UNDEFINE_CODE" << std::endl;
             break;
     }
     //MPI_Send(,,MPI_INT, status.MPI_SOURCE, DEFAULT_TAG_VAL, MPI_COMM_WORLD);
-}
-
-void Pensioner::signal_callback_handler(int signum)
-{
-    std::cout << "#DEBUG: Signum = " << signum << std""endl;
-    thread->thread_kill = true;    
+    return 1;
 }
 
 void Pensioner::listen() {
     int code;
     MPI_Status status;
+    bool loop_control = false;
 
-    while(!(this->thread_kill)) {
+    while(!loop_control) {
         MPI_Recv(&code, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         //source id in status.MPI_SOURCE
-        code_func_control(code, status.MPI_SOURCE);
+        if(code_func_control(code, status.MPI_SOURCE) == 0) {
+        	loop_control = true;
+        }
     }
 }
 
-void Pensioner::asking() {
-
-}
 
 void Pensioner::proc_leader() {
 
@@ -287,7 +288,12 @@ void Pensioner::set_money_amount() {
 }
 
 bool Pensioner::check_if_leader() {
-    return this->is_leader;
+    if(this->my_id == this->my_leader_id) {
+    	return true;
+    }
+    else {
+    	return false;
+    }
 }
 
 void Pensioner::set_as_leader(bool val) {

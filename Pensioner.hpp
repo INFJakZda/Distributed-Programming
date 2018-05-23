@@ -49,13 +49,17 @@ class Pensioner {
         unsigned int money_amount;
         unsigned int status;
         unsigned int group_money;
+        unsigned int size;
         unsigned int my_leader_id;
         unsigned int my_id;
+
+        int selected_club_id;
         bool is_club_selected;
         bool* club_array;
         int* pensioners_status_list;
-        int selected_club_id;
+        
         Lamport lamport_time;
+        
         std::mutex mutx;
         std::condition_variable cond_var;
         bool ready_cond_var;
@@ -65,8 +69,8 @@ class Pensioner {
         main_loop();
 
     private:
-        void listen();
-        void handle_stuff();
+        void listen(Pensioner *);
+        void handle_stuff(Pensioner *);
         int do_stuff();
         void reset_me(int);
         int code_func_control(int, int);

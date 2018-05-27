@@ -1,20 +1,49 @@
 #ifndef _LAMPORT_HPP
 #define _LAMPORT_HPP
 
-class Lamport {
-private:
-	unsigned long long time_stamp;
-	
-public:
-	Lamport() { 
-        this->time_stamp = 0;
-    }
-	
-	unsigned long long get_time_stamp() {
-		return this->time_stamp;
-	}
+#include <string>
+#include <iostream>
+#include <mpi.h>
 
-	void time_stamp_tick() { this->times_tamp++; }
+using std::string;
+
+enum MessageTag {
+    WantToChangeQueue,
+    AfterMurder,
+    InQueue,
+    InCompany,
+    AnswerWantToJoinQueue,
+    WantToJoinQueue
+};
+
+struct Message {
+    int oldCompanyId;
+    bool answer;
+    int companyId;
+    int points;
+    int processId;
+    int lamportClock;
+};
+
+
+class Lamport {
+
+protected:
+    int timestamp;
+
+public:
+    int size;
+    int rank;
+    Lamport(int size, int rank);
+    void broadcast(Message message, MessageTag tag);
+    void increment();
+    int getTimestamp();
+    void sendMessage(int to, Message message, MessageTag tag);
+    void setMax(int timestamp);
+
+
+protected:
+    void send(int to, Message message, MessageTag tag);
 };
 
 #endif

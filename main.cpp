@@ -28,7 +28,7 @@
 #define MESSAGE_STATUS_ASK_TO_ENTER 4
 #define MESSAGE_STATUS_AGREE_TO_ENTER_CLUB 5
 #define MESSAGE_STATUS_DISAGREE_TO_ENTER_CLUB 6
-#define MESSAGE_STATUS_EXIT_CLUB
+#define MESSAGE_STATUS_EXIT_CLUB 7
 
 /* ARRAY VALUES */
 #define ARRAY_VAL_NOT_ASKED 0
@@ -143,6 +143,7 @@ int main(int argc, char **argv)
 	{
 		/* INFINITE LOOP */
 		amount = rand()%(M - 2) + 1;	//GET RANDOM AMOUNT FROM RANGE <0; M-1>
+		//Choose club
 		if(K > 1)
 		{
 			preferClubId = rand()%K;			// GET RANDOM PREFERED CLUB ID
@@ -194,8 +195,8 @@ int main(int argc, char **argv)
 					myStatus = PROC_STATUS_LEADER;
 					if(groupAmount >= M)
 					{
-						myStatus = PROC_STATUS_ENOUGH_MONEY;
-						pritnf("[ID: %d][Time: %d]: Enough money!", MEMBER_ID, localClock);						
+						pritnf("[ID: %d][Time: %d]: Enough money!", MEMBER_ID, localClock);
+						second_loop_control=FALSE;						
 					}
 				}
 				
@@ -206,9 +207,9 @@ int main(int argc, char **argv)
 				
 				if(myStatus == PROC_STATUS_GROUP_BREAK)
 				{
-					myStatus = money;
+					groupAmount = money;
 					myStatus = PROC_STATUS_ALONE;
-					pritnf("[ID: %d][Time: %d]: Group break!", MEMBER_ID, localClock)
+					pritnf("[ID: %d][Time: %d]: Group break(#1)!", MEMBER_ID, localClock)
 				}
 				
 				if(status == PROC_STATUS_EXIT_CLUB)
@@ -219,6 +220,49 @@ int main(int argc, char **argv)
 				}
 			}
 		}
+
+		if((groupAmount < M) && (myStatus==PROC_STATUS_LEADER))
+		{
+			pritnf("[ID: %d][Time: %d]: Group break(#2)!", MEMBER_ID, localClock)
+			groupAmount = money;
+			
+			for(int i=0; i<N; i++)
+			{
+				if(Arry_Of_Members[i]==ARRAY_VAL_ASKED_ACCEPT)
+				{
+					++localClock;
+					msg_to_send.clock = localClock;
+					msg_to_send.message = MESSAGE_STATUS_DISSOLUTION_GROUP;
+					msg_to_send.memberId = MEMBER_ID;
+					msg_to_send.clubId = preferClubId;
+					msg_to_send.amount = amount;
+					MPI_Send(&msg_to_send, 1, mpi_msg_type, i, MSG_TAG, MPI_COMM_WORLD);
+				}
+			}
+		}
+		
+		if((groupAmount >= M) && (myStatus==PROC_STATUS_LEADER))
+		{
+			pritnf("[ID: %d][Time: %d]: Try to go to club!", MEMBER_ID, localClock)
+			myStatus = PROC_STATUS_ENOUGH_MONEY;
+			pritnf("[ID: %d][Time: %d]: Choose club number %d", MEMBER_ID, localClock, preferClubId);
+			
+			for(int i=0; i<N; i++)
+			{
+				if(i!=MEMBER_ID)
+				{
+					++localClock;
+					msg_to_send.clock = localClock;
+					msg_to_send.message = MESSAGE_STATUS_ASK_TO_ENTER;
+					msg_to_send.memberId = MEMBER_ID;
+					msg_to_send.clubId = preferClubId;
+					msg_to_send.amount = amount;
+					MPI_Send(&msg_to_send, 1, mpi_msg_type, i, MSG_TAG, MPI_COMM_WORLD);
+					pritnf("[ID: %d][Time: %d]: Choose club number %d, Ask MEMBER %d for permission", MEMBER_ID, localClock, preferClubId, i);
+				}
+			}
+		}
+
 		/* ************************************************************* */
 	}
 	

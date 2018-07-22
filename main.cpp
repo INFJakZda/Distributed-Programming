@@ -40,7 +40,7 @@ unsigned int *Arry_Of_Members;
 int MEMBER_ID; // ID OF MEMBER
 MPI_Datatype mpi_msg_type;
 unsigned int localClock;
-unsigned int clubId;
+unsigned int preferClubId;
 unsigned int amount;
 unsigned int groupAmount;
 unsigned int coutApproveFromMembersToEnterToClub;
@@ -55,7 +55,50 @@ typedef struct msg_s {
         unsigned int amount;
 }msg;
 
+#define MSG_TAG 100
+
 void *threadFunc();
+
+unsigned int checkIfSomeoneToAsk()
+{
+	for(int i=0; i<N; i++)
+	{
+		if(Arry_Of_Members[i] == ARRAY_VAL_NOT_ASKED)
+			return TRUE;
+	}
+	return FALSE;
+}
+
+int getRandomMemberID()
+{
+	int val = rand()%N;
+	
+	if(Arry_Of_Members[val] == ARRAY_VAL_NOT_ASKED)
+	{
+		if(i != MEMBER_ID)
+			return val;
+	}
+
+	for(int i=val; i<N; i++)
+	{
+		if(Arry_Of_Members[i] == ARRAY_VAL_NOT_ASKED)
+		{
+			if(i != MEMBER_ID)
+				return i;
+		}
+	}
+	
+	for(int i=val; i>=0; i--)
+	{
+		if(Arry_Of_Members[i] == ARRAY_VAL_NOT_ASKED)
+		{
+			if(i != MEMBER_ID)
+				return i;
+		}
+	}
+			
+	return -1;
+}
 
 int main(int argc, char **argv)
 {
@@ -81,7 +124,6 @@ int main(int argc, char **argv)
 	
 	Arry_Of_Members = malloc(sizeof(int) * N);
 	msg msg_to_send;
-	int search_Arry_Of_Members;
 	
 	localClock = 0;
 	
@@ -99,10 +141,13 @@ int main(int argc, char **argv)
 		/* INFINITE LOOP */
 		amount = rand()%(M - 2) + 1;	//GET RANDOM AMOUNT FROM RANGE <0; M-1>
 		if(K > 1)
-			clubId = rand()%K;			// GET RANDOM PREFERED CLUB ID
+		{
+			preferClubId = rand()%K;			// GET RANDOM PREFERED CLUB ID
+		}
 		else
-			clubId = 0;
-		
+		{
+			preferClubId = 0;	
+		}
 		groupAmount = amount;
 		coutApproveFromMembersToEnterToClub = 0;
 		myStatus = PROC_STATUS_ALONE;
@@ -114,16 +159,25 @@ int main(int argc, char **argv)
 				Arry_Of_Members[i] = ARRAY_VAL_NOT_ASKED;
 		}
 		
-		search_Arry_Of_Members = 0;
-		while(search_Arry_Of_Members == N)
+		while(checkIfSomeoneToAsk())
 		{
-			if(Arry_Of_Members[search_Arry_Of_Members] == ARRAY_VAL_NOT_ASKED)
+			++localClock;
+			msg_to_send.clock = localClock;
+			msg_to_send.message = MESSAGE_STATUS_ASK_TO_JOIN;
+			msg_to_send.memberId = MEMBER_ID;
+			msg_to_send.clubId = preferClubId;
+			msg_to_send.amount = amount;
+			
+			int tempVal = getRandomMemberID();
+			if(tempVal == -1)
 			{
-				
-				++search_Arry_Of_Members;
+				printf("[ID: %d][TIME: %d]: No one to ask!", MEMBER_ID, localClock);
+				break;
 			}
 			else
-				++search_Arry_Of_Members;
+			{
+				MPI_Send(&msg_to_send, 1, mpi_msg_type, tempVal, MSG_TAG, MPI_COMM_WORLD);
+			}
 		}
 		/* ************************************************************* */
 	}

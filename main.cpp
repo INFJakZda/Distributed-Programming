@@ -60,9 +60,6 @@ typedef struct msg_s {
 
 #define MSG_TAG 100
 
-int ready_flag = FALSE;
-pthread_mutex_t ready_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t ready_cond = PTHREAD_COND_INITIALIZER;
 void *threadFunc();
 
 unsigned int checkIfSomeoneToAsk()
@@ -185,38 +182,40 @@ int main(int argc, char **argv)
 			{
 				MPI_Send(&msg_to_send, 1, mpi_msg_type, tempVal, MSG_TAG, MPI_COMM_WORLD);
 				printf("[ID: %d][TIME: %d]: Ask member to join [ID: %d]", MEMBER_ID, localClock, tempVal);
+								
 				
-				pthread_mutex_lock(&ready_mutex);
-				ready_flag = FALSE;
-				while(!ready_flag) 
+				while((myStatus==PROC_STATUS_ALONE) || (myStatus == PROC_STATUS_MEMBER) || (myStatus == PROC_STATUS_LEADER)) 
 				{
-					pthread_cond_wait(&ready_cond, &ready_mutex);
+					/* WAIT FOR UPDATE MYSTATUS */	
 				}
-				pthread_mutex_unlock(&ready_mutex);
 				
 				if(myStatus == PROC_STATUS_ACCEPT_INVITATION)
 				{
-					
+					myStatus = PROC_STATUS_LEADER;
+					if(groupAmount >= M)
+					{
+						myStatus = PROC_STATUS_ENOUGH_MONEY;
+						pritnf("[ID: %d][Time: %d]: Enough money!", MEMBER_ID, localClock);						
+					}
 				}
 				
 				if(myStatus == PROC_STATUS_REJECT_INVITATION)
 				{
-					
+					myStatus = PROC_STATUS_ALONE;
 				}
 				
 				if(myStatus == PROC_STATUS_GROUP_BREAK)
 				{
-					
+					myStatus = money;
+					myStatus = PROC_STATUS_ALONE;
+					pritnf("[ID: %d][Time: %d]: Group break!", MEMBER_ID, localClock)
 				}
 				
-				if(status == PROC_STATUS_ENOUGH_MONEY)
-				{
-					
-				}
-				
-				if(status == PROC_STATUS_REBOOT)
+				if(status == PROC_STATUS_EXIT_CLUB)
 				{
 					second_loop_control = FALSE;
+					myStatus = PROC_STATUS_ALONE;
+					pritnf("[ID: %d][Time: %d]: Go out from club!", MEMBER_ID, localClock);
 				}
 			}
 		}
@@ -243,10 +242,4 @@ void *threadFunc()
 	MPI_Status mpi_status;
 	msg recive;
 	
-	/* To unlock main thread
-	pthread_mutex_lock(&ready_mutex);
-	ready_flag = TRUE;
-	pthread_cond_signal(&ready_cond);
-	pthread_mutex_unlock(&ready_mutex);
-	*/
 }

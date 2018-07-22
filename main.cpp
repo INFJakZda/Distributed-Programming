@@ -15,7 +15,10 @@
 #define PROC_STATUS_ACCEPT_INVITATION 3
 #define PROC_STATUS_REJECT_INVITATION 4
 #define PROC_STATUS_ENOUGH_MONEY 5
-#define PROC_STATUS_REBOOT 6
+#define PROC_STATUS_ENTER_CLUB 6
+#define PROC_STATUS_EXIT_CLUB 7
+#define PROC_STATUS_GROUP_BREAK 8
+#define PROC_STATUS_REBOOT 9
 
 /* MESSAGE STATUS */
 #define MESSAGE_STATUS_ASK_TO_JOIN 0
@@ -57,6 +60,9 @@ typedef struct msg_s {
 
 #define MSG_TAG 100
 
+int ready_flag = FALSE;
+pthread_mutex_t ready_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t ready_cond = PTHREAD_COND_INITIALIZER;
 void *threadFunc();
 
 unsigned int checkIfSomeoneToAsk()
@@ -129,7 +135,7 @@ int main(int argc, char **argv)
 	
 	pthread_t  pthreadFunc;
 	if(pthread_create(&pthreadFunc, NULL, threadFunc, NULL)) {
-		fprintf(stderr, "Error creating thread\n");
+		fprintf(stderr, "[ID: %d]Error creating thread\n", MEMBER_ID);
 		free(Arry_Of_Members);
 		MPI_Type_free(&mpi_msg_type);
 		MPI_Finalize();
@@ -159,7 +165,8 @@ int main(int argc, char **argv)
 				Arry_Of_Members[i] = ARRAY_VAL_NOT_ASKED;
 		}
 		
-		while(checkIfSomeoneToAsk())
+		short second_loop_control = TRUE;
+		while(checkIfSomeoneToAsk() && second_loop_control)
 		{
 			++localClock;
 			msg_to_send.clock = localClock;
@@ -172,18 +179,52 @@ int main(int argc, char **argv)
 			if(tempVal == -1)
 			{
 				printf("[ID: %d][TIME: %d]: No one to ask!", MEMBER_ID, localClock);
-				break;
+				second_loop_control = FALSE;
 			}
 			else
 			{
 				MPI_Send(&msg_to_send, 1, mpi_msg_type, tempVal, MSG_TAG, MPI_COMM_WORLD);
+				printf("[ID: %d][TIME: %d]: Ask member to join [ID: %d]", MEMBER_ID, localClock, tempVal);
+				
+				pthread_mutex_lock(&ready_mutex);
+				ready_flag = FALSE;
+				while(!ready_flag) 
+				{
+					pthread_cond_wait(&ready_cond, &ready_mutex);
+				}
+				pthread_mutex_unlock(&ready_mutex);
+				
+				if(myStatus == PROC_STATUS_ACCEPT_INVITATION)
+				{
+					
+				}
+				
+				if(myStatus == PROC_STATUS_REJECT_INVITATION)
+				{
+					
+				}
+				
+				if(myStatus == PROC_STATUS_GROUP_BREAK)
+				{
+					
+				}
+				
+				if(status == PROC_STATUS_ENOUGH_MONEY)
+				{
+					
+				}
+				
+				if(status == PROC_STATUS_REBOOT)
+				{
+					second_loop_control = FALSE;
+				}
 			}
 		}
 		/* ************************************************************* */
 	}
 	
 	if(pthread_join(pthreadFunc, NULL)) {
-		fprintf(stderr, "Error joining thread\n");
+		fprintf(stderr, "[ID: %d]Error joining thread\n", MEMBER_ID);
 		free(Arry_Of_Members);
 		MPI_Type_free(&mpi_msg_type);
 		MPI_Finalize();
@@ -199,5 +240,10 @@ int main(int argc, char **argv)
 
 void *threadFunc()
 {
-	
+	/* To unlock main thread
+	pthread_mutex_lock(&ready_mutex);
+	ready_flag = TRUE;
+	pthread_cond_signal(&ready_cond);
+	pthread_mutex_unlock(&ready_mutex);
+	*/
 }

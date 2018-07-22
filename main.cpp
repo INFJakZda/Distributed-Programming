@@ -240,6 +240,9 @@ int main(int argc, char **argv)
 
 void *threadFunc()
 {
+	MPI_Status mpi_status;
+	msg recive;
+	
 	/* To unlock main thread
 	pthread_mutex_lock(&ready_mutex);
 	ready_flag = TRUE;

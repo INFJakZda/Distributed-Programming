@@ -82,16 +82,7 @@ int getRandomMemberID()
 			return val;
 	}
 
-	for(int i=val; i<N; i++)
-	{
-		if(Arry_Of_Members[i] == ARRAY_VAL_NOT_ASKED)
-		{
-			if(i != MEMBER_ID)
-				return i;
-		}
-	}
-	
-	for(int i=val; i>=0; i--)
+	for(int i=0; i<N; i++)
 	{
 		if(Arry_Of_Members[i] == ARRAY_VAL_NOT_ASKED)
 		{

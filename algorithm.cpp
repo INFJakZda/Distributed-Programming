@@ -63,7 +63,7 @@ int main (int argc, char *argv[])
 
     askTab = malloc(sizeof(int) * N);
     msg msgToSend;
-
+    
     localClock = 0;
 
     MPI_Finalize();

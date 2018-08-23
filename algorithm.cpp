@@ -15,6 +15,7 @@
 
 /* MY STATUS VALUES */
 #define ALONE_STATUS 0
+#define WAIT_FOR_RESPONSE_STATUS -1
 #define LEADER_STATUS 1
 #define MEMBER_STATUS 2
 #define ACCEPT_INVITATION_STATUS 3
@@ -27,14 +28,14 @@
 
 /* GLOBAL VARIABLES (ONLY FOR THREADS) */
 int noMembers;      // N - NUMBER OF MEMBERS
-int entryAmount;    // M - ENTRY AMOUNT
 int noClubs;        // K - HOW MANY CLUBS
-int memberMoney;     
-int groupMoney;     
-unsigned int *askTab;
+int entryAmount;    // M - ENTRY AMOUNT
+int memberMoney;
+int groupMoney;
 int memberId;
+int preferedClubId;
 unsigned int localClock;
-
+unsigned int *askTab;
 MPI_Datatype mpiMsgType;
 
 typedef struct msg_s {
@@ -45,7 +46,7 @@ typedef struct msg_s {
     unsigned int money;
 } msg;
 
-void *threadFunc() 
+void *threadFunc()
 {
     msg sendMsg;
     msg recvMsg;
@@ -85,7 +86,7 @@ int main (int argc, char *argv[])
 
     askTab = malloc(sizeof(int) * N);
     msg msgToSend;
-    
+
     localClock = 0;
 
     pthread_t  pthreadFunc;

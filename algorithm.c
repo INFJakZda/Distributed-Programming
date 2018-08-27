@@ -74,7 +74,7 @@ void *threadFunc()
     {
         MPI_Recv(&recvMsg, 1, mpiMsgType, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         localClock = max(recvMsg.localClock, localClock) + 1;
-        printf("[myId: %d][%d][%d]   Odebrałem wiadomość od %d\n", memberId, recvMsg.localClock, localClock, recvMsg.memberId);
+        printf("[myId: %d][from: %d][clock: %d]   Odebrałem wiadomość\n", memberId, recvMsg.memberId, localClock);
     }
 }
 
@@ -178,11 +178,10 @@ void mainLoop()
             //SEND MESSAGE TO SELECTED MEMBER
             sendMsg = createPackage(localClock, 0, memberId, preferedClubId, memberMoney);
             MPI_Send(&sendMsg, 1, mpiMsgType, selectedMember, MSG_TAG, MPI_COMM_WORLD);
-            printf("[myId: %d][%d]   Zapytanie o dolaczenie do grupy do memberId = %d\n", memberId, localClock, selectedMember);
+            printf("[myId: %d][to:   %d][clock: %d]   Zapytanie o dolaczenie do grupy do memberId\n", memberId, selectedMember, localClock);
             askTab[selectedMember] = 1;
-            break;
         }
-        sleep(rand() % noMembers - 1);
+        sleep(rand() % (noMembers - 1));
     }
 }
 

@@ -20,7 +20,7 @@ A certain organization of retirees from time to time draws a small amount for it
 ## Zmienne:
     noMembers   - N - liczba emerytów
     noClubs     - K - liczba klubów, N >> K
-    entryAmount - M - kwota potrzebna do wstępu do klubu
+    entryCost - M - kwota potrzebna do wstępu do klubu
     memberMoney - kwota którą otrzymał emeryt od organizacji
     groupMoney - kwota jaką posiada grupa
     memberId - unikalny identyfikator emeryta
@@ -47,7 +47,7 @@ A certain organization of retirees from time to time draws a small amount for it
 
 
 ## Init:
-    1. Każdy z emerytów dostaje losową kwotę pieniędzy [memberMoney] po losowym czasie, w zakresie od 1 do M (entryAmount).
+    1. Każdy z emerytów dostaje losową kwotę pieniędzy [memberMoney] po losowym czasie, w zakresie od 1 do M (entryCost).
     2. Ustawienie wszystkich wartości tablicy [askTab] na 0 (gotowy do zapytania).
     3. myStatus = 0 [ALONE_STATUS].
     4. groupMoney = 0

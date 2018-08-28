@@ -36,6 +36,9 @@ enum
 #define GROUP_BREAK_STATUS 8
 #define REBOOT_STATUS 9
 
+/* MESSAGE TYPE VALUES */
+#define ASK_TO_JOIN_MSG 0
+
 /* GLOBAL VARIABLES (ONLY FOR THREADS) */
 int noMembers; // N - NUMBER OF MEMBERS
 int noClubs;   // K - HOW MANY CLUBS
@@ -93,13 +96,13 @@ void createThread()
 
 void initMember()
 {
-    memberMoney = ((rand() % (entryCost - 2)) + 1);
+    memberMoney = (rand() % (entryCost - 2)) + 1;
     groupMoney = memberMoney;
     myStatus = ALONE_STATUS;
-    preferedClubId = rand() % noClubs + 1;
+    preferedClubId = rand() % noClubs;
     askTab = calloc(noMembers, sizeof(int));
 
-    //Reset askTab
+    //RESET askTab to 0 [READY_ASK_TAB]
     for (int i = 0; i < noMembers; i++)
     {
         *(askTab + i) = READY_ASK_TAB;
@@ -156,12 +159,16 @@ msg createPackage(int localClock, int message, int memberId, int clubId, int mem
 
 void mainLoop()
 {
-    localClock = rand() % (noMembers - 1);
+    //START COMMUNICATE AFTER RANDOM SHORT TIME
+    localClock = rand() % noMembers;
     sleep(localClock);
+
+    msg sendMsg;
+
     while (true)
     {
         initMember();
-        msg sendMsg;
+        
         while (isEmptyTab())
         {
             //INCREASE LAMPORT CLOCK
@@ -175,13 +182,30 @@ void mainLoop()
                 break;
             }
 
-            //SEND MESSAGE TO SELECTED MEMBER
-            sendMsg = createPackage(localClock, 0, memberId, preferedClubId, memberMoney);
+            //SEND MESSAGE TO SELECTED MEMBER & CHANGE STATUS
+            sendMsg = createPackage(localClock, ASK_TO_JOIN_MSG, memberId, preferedClubId, memberMoney);
+            
             MPI_Send(&sendMsg, 1, mpiMsgType, selectedMember, MSG_TAG, MPI_COMM_WORLD);
-            printf("[myId: %d][to:   %d][clock: %d]   Zapytanie o dolaczenie do grupy do memberId\n", memberId, selectedMember, localClock);
-            askTab[selectedMember] = 1;
+            myStatus = WAIT_FOR_RESPONSE_STATUS
+            printf("[myId: %d][to:   %d][clock: %d]   Zapytanie o dolaczenie do grupy\n", memberId, selectedMember, localClock);
+
+            //WAIT FOR STATUS UPDATE - RECIEVE RESPONSE MSG
+            while (myStatus == WAIT_FOR_RESPONSE_STATUS)
+            {
+
+            }
+
+            switch (myStatus)
+            {
+                case LEADER_STATUS:
+                    
+            }
         }
-        sleep(rand() % (noMembers - 1));
+        //EXIT CLUBS IN DIFFERERNT TIME
+        int sleepTime = rand() % noMembers;
+        localClock += sleepTime;
+        sleep(sleepTime);
+        printf("[myId: %d]         [clock: %d]   Spałem %d sekund\n", memberId, localClock, sleepTime);
     }
 }
 
@@ -190,13 +214,12 @@ int main(int argc, char *argv[])
     /* READ K & M FROM argv */
     noClubs = atoi(argv[1]);
     entryCost = atoi(argv[2]);
-    printf("K = %d M = %d\n", noClubs, entryCost);
+    //printf("K = %d M = %d\n", noClubs, entryCost);
 
     /* INIT MPI */
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &noMembers);
     MPI_Comm_rank(MPI_COMM_WORLD, &memberId);
-    printf("[myId: %d] size = %d\n", memberId, noMembers);
 
     /* PREPARE STRUCT FOR SENDING MESSAGES */
     int blocklengths[MESSAGE_COUNT] = {1, 1, 1, 1, 1};
@@ -211,8 +234,9 @@ int main(int argc, char *argv[])
 
     MPI_Type_create_struct(MESSAGE_COUNT, blocklengths, offsets, types, &mpiMsgType);
     MPI_Type_commit(&mpiMsgType);
-    printf("[myId: %d] dziala\n", memberId);
+    
     srand(time(0) + memberId);
+
     //RECIEVING THREAD
     createThread();
 
@@ -220,7 +244,6 @@ int main(int argc, char *argv[])
     mainLoop();
 
     printf("[myId: %d] koniec\n", memberId);
-    sleep(12);
     /* MPI FINALIZE */
     MPI_Type_free(&mpiMsgType);
     MPI_Finalize();

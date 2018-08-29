@@ -197,14 +197,20 @@ void mainLoop()
             printf("[myId: %d][to:   %d][clock: %d]   Zapytanie o dolaczenie do grupy\n", memberId, selectedMember, localClock);
 
             //WAIT FOR STATUS UPDATE - RECIEVE RESPONSE MSG
-            while (myStatus == WAIT_FOR_RESPONSE_STATUS)
+            while (myStatus == ALONE_STATUS)
             {
-
+                
             }
 
             switch (myStatus)
             {
-                case LEADER_STATUS:
+                case ACCEPT_INVITATION_STATUS:
+                    myStatus = LEADER_STATUS;
+                    if (groupMoney >= entryCost)
+                    {
+                        printf("[myId: %d]         [clock: %d]   \n", rank, lamportClock, groupMoney, entryCost);
+                        goto ExitWHILE;
+                    }
                     
             }
         }

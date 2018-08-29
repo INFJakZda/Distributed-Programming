@@ -20,27 +20,35 @@ A certain organization of retirees from time to time draws a small amount for it
 ## Zmienne:
     noMembers   - N - liczba emerytów
     noClubs     - K - liczba klubów, N >> K
-    entryCost - M - kwota potrzebna do wstępu do klubu
+    entryCost   - M - kwota potrzebna do wstępu do klubu
     memberMoney - kwota którą otrzymał emeryt od organizacji
     groupMoney - kwota jaką posiada grupa
     memberId - unikalny identyfikator emeryta
     preferedClubId - preferowane ID clubu z góry wylosowane
     localClock - lokalny zegar logiczny Lamporta
+
     askTab[N] - tablica reprezentująca aktualny status innych emerytów:
         0 - READY_ASK_TAB - emeryt gotowy do zapytania
         1 - ACCEPT_ASK_TAB - zaakceptował zapytanie (w grupie)
         2 - REJECT_ASK_TAB - odrzucił zapytanie (w innej grupie)
+
     myStatus - status emeryta:
         0 - ALONE_STATUS - pojedynczy emeryt (bez grupy)
-        -1 - WAIT_FOR_RESPONSE_STATUS - czekanie na potwierdzenie od konkretnego emeryta
         1 - LEADER_STATUS - założyciel grupy
         2 - MEMBER_STATUS - uczestnik grupy
+        3 - ACCEPT_INVITATION_STATUS - status pośredni - po odebraniu potwierdzenia dołączenia do grupy
+        4 - REJECT_INVITATION_STATUS - status pośredni - po odebraniu odrzucenia dołączenia do grupy
+        5 - ENOUGH_MONEY_STATUS
+        6 - ENTER_CLUB_STATUS
+        7 - EXIT_CLUB_STATUS
+        8 - GROUP_BREAK_STATUS
+
     message - typ wiadomości przesyłanych pomiędzy emerytami
         0 - ASK_TO_JOIN_MSG - zapytanie o dołączenie do grupy
         1 - CONFIRM_JOIN_MSG 1 - potwierdzenie dołączenia do grupy
         2 - REJECT_JOIN_MSG 2 - odrzucenie propozycji dołączenia do grupy
-        3 - DISSOLUTION_GROUP_MSG 3
-        4 - ASK_TO_ENTER_MSG 4
+        3 - GROUP_BREAK_MSG 3
+        4 - ASK_TO_ENTER_CLUB_MSG 4
         5 - AGREE_TO_ENTER_CLUB_MSG 5
         6 - DISAGREE_TO_ENTER_CLUB_MSG 6
         7 - EXIT_CLUB_MSG 7

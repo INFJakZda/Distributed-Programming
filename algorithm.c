@@ -94,14 +94,13 @@ void *threadFunc()
 {
     msg sendMsg;
     msg recvMsg;
-    
+
     while (true)
     {
         MPI_Recv(&recvMsg, 1, mpiMsgType, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         localClock = max(recvMsg.localClock, localClock) + 1;
-        printf("[myId: %d][clock: %d][from: %d] Odebrałem wiadomość {%d}\n", memberId, localClock, recvMsg.memberId, myStatus);
 
-        //2 TODO what's that if else ?!?!?!?
+        //2
         if (myStatus == ENOUGH_MONEY_STATUS && recvMsg.message == ASK_TO_ENTER_CLUB_MSG)
         {
             if (recvMsg.preferedClubId != preferedClubId)
@@ -132,14 +131,14 @@ void *threadFunc()
             printf("[myId: %d][clock: %d][to:   %d] Odrzucenie zaproszenia do grupy {%d}\n", memberId, localClock, recvMsg.memberId, myStatus);
         }
 
-        //4 i //9
+        //4
         else if ((myStatus == LEADER_STATUS || myStatus == ALONE_STATUS) && recvMsg.message == CONFIRM_JOIN_MSG)
         {
             groupMoney += recvMsg.memberMoney;
             *(askTab + recvMsg.memberId) = ACCEPT_ASK_TAB;
             myStatus = ACCEPT_INVITATION_STATUS;
             ++approveCount;
-            printf("[myId: %d][clock: %d][from: %d] dołączył do grupy! Mamy teraz %d na %d pieniedzy {%d}\n", memberId, localClock, recvMsg.memberId, groupMoney, entryCost, myStatus);
+            printf("[myId: %d][clock: %d][from: %d] Dołączył do grupy! Mamy teraz %d na %d pieniedzy {%d}\n", memberId, localClock, recvMsg.memberId, groupMoney, entryCost, myStatus);
         }
 
         //5
@@ -170,27 +169,17 @@ void *threadFunc()
             printf("[myId: %d][clock: %d][to:   %d] Pozwolenie na wejscie do klubu o nr: %d {%d}\n", memberId, localClock, recvMsg.memberId, recvMsg.preferedClubId, myStatus);
         }
 
-        //8 TODO what that?!?! if elses every time localClock will be higher than recvMsg.localClock becouse we take max() + 1 to localClock
+        //8
         else if ((myStatus == ALONE_STATUS || myStatus == GROUP_BREAK_STATUS) && recvMsg.message == ASK_TO_JOIN_MSG)
         {
-            if (recvMsg.localClock < localClock)
-            {
-                myStatus = MEMBER_STATUS;
-                localClock++;
-                sendMsg = createPackage(localClock, CONFIRM_JOIN_MSG, memberId, preferedClubId, memberMoney);
-                MPI_Send(&sendMsg, 1, mpiMsgType, recvMsg.memberId, MSG_TAG, MPI_COMM_WORLD);
-                printf("[myId: %d][clock: %d][to:   %d] Akceptuje zaproszenie do grupy {%d} \n", memberId, localClock, recvMsg.memberId, myStatus);
-            }
-            else
-            {
-                localClock++;
-                sendMsg = createPackage(localClock, REJECT_JOIN_MSG, memberId, preferedClubId, memberMoney);
-                MPI_Send(&sendMsg, 1, mpiMsgType, recvMsg.memberId, MSG_TAG, MPI_COMM_WORLD);
-                printf("[myId: %d][clock: %d][to:   %d] Odrzucam zaproszenie do grupy {%d} \n", memberId, localClock, recvMsg.memberId, myStatus);
-            }
+            myStatus = MEMBER_STATUS;
+            localClock++;
+            sendMsg = createPackage(localClock, CONFIRM_JOIN_MSG, memberId, preferedClubId, memberMoney);
+            MPI_Send(&sendMsg, 1, mpiMsgType, recvMsg.memberId, MSG_TAG, MPI_COMM_WORLD);
+            printf("[myId: %d][clock: %d][to:   %d] Akceptuje zaproszenie do grupy {%d} \n", memberId, localClock, recvMsg.memberId, myStatus);
         }
 
-        //10 TODO why group break? could continue find another members?
+        //9
         else if (myStatus == ALONE_STATUS && recvMsg.message == REJECT_JOIN_MSG)
         {
             myStatus = GROUP_BREAK_STATUS;
@@ -198,7 +187,7 @@ void *threadFunc()
             printf("[myId: %d][clock: %d][from: %d] Moje zaproszenie zostalo odrzucone {%d}\n", memberId, localClock, recvMsg.memberId, myStatus);
         }
 
-        //11
+        //10
         else if (myStatus == MEMBER_STATUS && recvMsg.message == CONFIRM_JOIN_MSG)
         {
             localClock++;
@@ -207,14 +196,14 @@ void *threadFunc()
             printf("[myId: %d][clock: %d][from: %d] Zrywam grupe (moje zaproszenie jest juz nie aktualne) {%d}\n", memberId, localClock, recvMsg.memberId, myStatus);
         }
 
-        //12
+        //11
         else if (myStatus == MEMBER_STATUS && recvMsg.message == GROUP_BREAK_MSG)
         {
             myStatus = GROUP_BREAK_STATUS;
             printf("[myId: %d][clock: %d][from: %d] Grupa zostala rozwiazana {%d}\n", memberId, localClock, recvMsg.memberId, myStatus);
         }
 
-        //13
+        //12
         else if (recvMsg.message == EXIT_CLUB_MSG)
         {
             preferedClubId = recvMsg.preferedClubId;
@@ -222,7 +211,7 @@ void *threadFunc()
             myStatus = EXIT_CLUB_STATUS;
         }
 
-        //14
+        //13
         else if (myStatus == ENTER_CLUB_STATUS && recvMsg.message == ASK_TO_ENTER_CLUB_MSG)
         {
             if (recvMsg.preferedClubId != preferedClubId)
@@ -257,9 +246,9 @@ void initMember()
     //RESET askTab to 0 [READY_ASK_TAB]
     for (int i = 0; i < noMembers; i++)
     {
-        *(askTab + i) = READY_ASK_TAB;
+        askTab[i] = READY_ASK_TAB;
         if (i == memberId)
-            *(askTab + i) = ACCEPT_ASK_TAB;
+            askTab[i] = ACCEPT_ASK_TAB;
     }
 }
 
@@ -267,7 +256,7 @@ bool isNotEmptyTab()
 {
     for (int i = 0; i < noMembers; i++)
     {
-        if (*(askTab + i) == 0)
+        if (askTab[i] == 0)
         {
             return true;
         }
@@ -300,10 +289,10 @@ int getRandomMemberID()
 void mainLoop()
 {
     //START COMMUNICATE AFTER RANDOM SHORT TIME
-    int sleepTime = rand() % ( noMembers / 2);
+    int sleepTime = rand() % (noMembers / 2);
     localClock += sleepTime;
-    sleep(localClock);
-    printf("[myId: %d][clock: %d]           Obudził się po %d czasu\n", memberId, localClock, sleepTime);
+    //sleep(localClock);
+    //printf("[myId: %d][clock: %d]           Obudził się po %d czasu\n", memberId, localClock, sleepTime);
 
     msg sendMsg;
 
@@ -342,7 +331,7 @@ void mainLoop()
             //WAIT FOR STATUS UPDATE - RECIEVE RESPONSE MSG /
             while (myStatus == ALONE_STATUS || myStatus == MEMBER_STATUS || myStatus == LEADER_STATUS)
             {
-                //waiting for myStatus update
+                //WAIT FOR UPDATE FROM OTHER THREAD
             }
 
             //EXIT ASKING, ENOUGH MONEY TO ENTER CLUB
@@ -369,7 +358,6 @@ void mainLoop()
             case GROUP_BREAK_STATUS:
                 groupMoney = memberMoney;
                 myStatus = ALONE_STATUS;
-                // TODO initAgain or not???
                 exitWhile = true;
                 initAgain = true;
                 break;
@@ -389,11 +377,12 @@ void mainLoop()
         }
         if (!initAgain)
         {
+            //WHEN HAS NO ENOUGH MONEY - GROUP BREAK
             if (groupMoney < entryCost && myStatus == LEADER_STATUS)
             {
                 for (int i = 0; i < noMembers; i++)
                 {
-                    if (*(askTab + i) == ACCEPT_ASK_TAB && i != memberId)
+                    if (askTab[i] == ACCEPT_ASK_TAB && i != memberId)
                     {
                         localClock++;
                         sendMsg = createPackage(localClock, GROUP_BREAK_MSG, memberId, preferedClubId, memberMoney);
@@ -402,10 +391,12 @@ void mainLoop()
                     }
                 }
             }
+            //WHEN HAS ENOUGH MONEY - ENTER TO CLUB
             else if (groupMoney >= entryCost && myStatus == LEADER_STATUS)
             {
                 myStatus = ENOUGH_MONEY_STATUS;
                 printf("[myId: %d][clock: %d] MAMY KLUB Wybralismy klub o nr: %d {%d}\n", memberId, localClock, preferedClubId, myStatus);
+                //ASK EVERYONE - NOT IN MY GROUP
                 for (int i = 0; i < noMembers; i++)
                 {
                     if ((i != memberId) && (askTab[i] != ACCEPT_ASK_TAB))
@@ -419,31 +410,31 @@ void mainLoop()
                 printf("[myId: %d][clock: %d]           Wysłaliśmy wszytskim zapytanie o wejscie do klubu: %d {%d}\n", memberId, localClock, preferedClubId, myStatus);
                 while (myStatus != ENTER_CLUB_STATUS)
                 {
-                    ;
+                    //WAIT FOR UPDATE FROM OTHER THREAD
                 }
 
                 printf("[myId: %d][clock: %d] WEJSCIE DO KLUBU Wchodzimy do klubu o nr: %d {%d}\n", memberId, localClock, preferedClubId, myStatus);
-                if (myStatus == ENTER_CLUB_STATUS)
+
+                //WHEN ENTER CLUB - SEND MSG TO MEMBERS THAT WE EXIT CLUB
+                for (int i = 0; i < noMembers; i++)
                 {
-                    for (int i = 0; i < noMembers; i++)
+                    if (askTab[i] == ACCEPT_ASK_TAB && i != memberId)
                     {
-                        if (*(askTab + i) == ACCEPT_ASK_TAB && i != memberId)
-                        {
-                            localClock++;
-                            sendMsg = createPackage(localClock, EXIT_CLUB_MSG, memberId, preferedClubId, memberMoney);
-                            MPI_Send(&sendMsg, 1, mpiMsgType, i, MSG_TAG, MPI_COMM_WORLD);
-                            printf("[myId: %d][clock: %d][to:   %d] Wychodzimy z klubu {%d}\n", memberId, localClock, i, myStatus);
-                        }
+                        localClock++;
+                        sendMsg = createPackage(localClock, EXIT_CLUB_MSG, memberId, preferedClubId, memberMoney);
+                        MPI_Send(&sendMsg, 1, mpiMsgType, i, MSG_TAG, MPI_COMM_WORLD);
+                        printf("[myId: %d][clock: %d][to:   %d] Wychodzimy z klubu {%d}\n", memberId, localClock, i, myStatus);
                     }
-                    for (int i = 0; i < noMembers; i++)
+                }
+                //SEND MSG AFTER CLUBING THAT WE EXIT CLUB
+                for (int i = 0; i < noMembers; i++)
+                {
+                    if (i != memberId && askTab[i] != ACCEPT_ASK_TAB)
                     {
-                        if (i != memberId && askTab[i] != ACCEPT_ASK_TAB)
-                        {
-                            localClock++;
-                            sendMsg = createPackage(localClock, AGREE_TO_ENTER_CLUB_MSG, memberId, preferedClubId, memberMoney);
-                            MPI_Send(&sendMsg, 1, mpiMsgType, i, MSG_TAG, MPI_COMM_WORLD);
-                            printf("[myId: %d][clock: %d][to:   %d] Info o zwolnieniu klubu nr: %d {%d}\n", memberId, localClock, i, preferedClubId, myStatus);
-                        }
+                        localClock++;
+                        sendMsg = createPackage(localClock, AGREE_TO_ENTER_CLUB_MSG, memberId, preferedClubId, memberMoney);
+                        MPI_Send(&sendMsg, 1, mpiMsgType, i, MSG_TAG, MPI_COMM_WORLD);
+                        printf("[myId: %d][clock: %d][to:   %d] Info o zwolnieniu klubu nr: %d {%d}\n", memberId, localClock, i, preferedClubId, myStatus);
                     }
                 }
 
@@ -451,10 +442,10 @@ void mainLoop()
             }
 
             //EXIT CLUBS IN DIFFERERNT TIME
-            int sleepTime = rand() % (noMembers / 2);
-            localClock += sleepTime;
-            sleep(sleepTime);
-            printf("[myId: %d][clock: %d]           Spałem %d czasu\n", memberId, localClock, sleepTime);
+            //int sleepTime = rand() % (noMembers / 2);
+            //localClock += sleepTime;
+            //sleep(sleepTime);
+            //printf("[myId: %d][clock: %d]           Spałem %d czasu\n", memberId, localClock, sleepTime);
         }
     }
 }

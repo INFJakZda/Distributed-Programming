@@ -129,7 +129,7 @@ void *threadFunc()
         }
 
         //3
-        if ((myStatus != ALONE_STATUS && myStatus != GROUP_BREAK_STATUS) && recvMsg.message == ASK_TO_JOIN_MSG)
+        else if ((myStatus != ALONE_STATUS && myStatus != GROUP_BREAK_STATUS) && recvMsg.message == ASK_TO_JOIN_MSG)
         {
             localClock++;
             sendMsg = createPackage(localClock, REJECT_JOIN_MSG, memberId, preferedClubId, memberMoney);
@@ -138,7 +138,7 @@ void *threadFunc()
         }
 
         //4 i //9
-        if ((myStatus == LEADER_STATUS || myStatus == ALONE_STATUS)  && recvMsg.message == CONFIRM_JOIN_MSG)
+        else if ((myStatus == LEADER_STATUS || myStatus == ALONE_STATUS)  && recvMsg.message == CONFIRM_JOIN_MSG)
         {
             groupMoney += recvMsg.memberMoney;
             *(askTab + recvMsg.memberId) = ACCEPT_ASK_TAB;
@@ -147,7 +147,7 @@ void *threadFunc()
         }
 
         //5
-        if (myStatus == LEADER_STATUS && recvMsg.message == REJECT_JOIN_MSG)
+        else if (myStatus == LEADER_STATUS && recvMsg.message == REJECT_JOIN_MSG)
         {
             *(askTab + recvMsg.memberId) = REJECT_ASK_TAB;
             myStatus = REJECT_INVITATION_STATUS;
@@ -155,7 +155,7 @@ void *threadFunc()
         }
 
         //6
-        if (myStatus == ENOUGH_MONEY_STATUS && recvMsg.message == AGREE_TO_ENTER_CLUB_MSG)
+        else if (myStatus == ENOUGH_MONEY_STATUS && recvMsg.message == AGREE_TO_ENTER_CLUB_MSG)
         {
             approveCount++;
             printf("[myId: %d][clock: %d][from: %d] Pozwolenie dla mnie na wejscie do klubu %d {%d}\n", memberId, localClock, recvMsg.memberId, preferedClubId, myStatus);
@@ -166,7 +166,7 @@ void *threadFunc()
         }
 
         //7
-        if (myStatus != ENOUGH_MONEY_STATUS && myStatus != ENTER_CLUB_STATUS && recvMsg.message == ASK_TO_ENTER_CLUB_MSG)
+        else if (myStatus != ENOUGH_MONEY_STATUS && myStatus != ENTER_CLUB_STATUS && recvMsg.message == ASK_TO_ENTER_CLUB_MSG)
         {
             localClock++;
             sendMsg = createPackage(localClock, AGREE_TO_ENTER_CLUB_MSG, memberId, preferedClubId, memberMoney);
@@ -175,7 +175,7 @@ void *threadFunc()
         }
 
         //8 TODO what that?!?! if elses every time localClock will be higher than recvMsg.localClock becouse we take max() + 1 to localClock
-        if ((myStatus == ALONE_STATUS || myStatus == GROUP_BREAK_STATUS) && recvMsg.message == ASK_TO_JOIN_MSG)
+        else if ((myStatus == ALONE_STATUS || myStatus == GROUP_BREAK_STATUS) && recvMsg.message == ASK_TO_JOIN_MSG)
         {
             if (recvMsg.localClock < localClock)
             {
@@ -196,7 +196,7 @@ void *threadFunc()
 
 
         //10 TODO why group break? could continue find another members?
-        if (myStatus == ALONE_STATUS && recvMsg.message == REJECT_JOIN_MSG)
+        else if (myStatus == ALONE_STATUS && recvMsg.message == REJECT_JOIN_MSG)
         {
             myStatus = GROUP_BREAK_STATUS;
             *(askTab + recvMsg.memberId) = REJECT_ASK_TAB;
@@ -204,7 +204,7 @@ void *threadFunc()
         }
 
         //11
-        if (myStatus == MEMBER_STATUS && recvMsg.message == CONFIRM_JOIN_MSG)
+        else if (myStatus == MEMBER_STATUS && recvMsg.message == CONFIRM_JOIN_MSG)
         {
             localClock++;
             sendMsg = createPackage(localClock, GROUP_BREAK_MSG, memberId, preferedClubId, memberMoney);
@@ -213,14 +213,14 @@ void *threadFunc()
         }
 
         //12
-        if (myStatus == MEMBER_STATUS && recvMsg.message == GROUP_BREAK_MSG)
+        else if (myStatus == MEMBER_STATUS && recvMsg.message == GROUP_BREAK_MSG)
         {
             myStatus = GROUP_BREAK_STATUS;
             printf("[myId: %d][clock: %d][from: %d] Grupa zostala rozwiazana {%d}\n", memberId, localClock, recvMsg.memberId, myStatus);
         }
 
         //13
-        if (recvMsg.message == EXIT_CLUB_MSG)
+        else if (recvMsg.message == EXIT_CLUB_MSG)
         {
             preferedClubId = recvMsg.preferedClubId;
             printf("[myId: %d][clock: %d][from: %d] Wychodze z klubu jako czlonek grupy! Nr klubu: %d {%d}\n", memberId, localClock, recvMsg.memberId, preferedClubId, myStatus);
@@ -228,7 +228,7 @@ void *threadFunc()
         }
 
         //14
-        if (myStatus == ENTER_CLUB_STATUS && recvMsg.message == ASK_TO_ENTER_CLUB_MSG)
+        else if (myStatus == ENTER_CLUB_STATUS && recvMsg.message == ASK_TO_ENTER_CLUB_MSG)
         {
             if (recvMsg.preferedClubId != preferedClubId)
             {
@@ -415,7 +415,7 @@ void mainLoop()
             }
 
             //Jeżeli mamy siano i możemy ubiegać się o wejście
-            if (groupMoney >= entryCost && myStatus == LEADER_STATUS)
+            else if (groupMoney >= entryCost && myStatus == LEADER_STATUS)
             {
                 printf("[myId: %d][clock: %d]           Wybieramy klub! {%d}\n", memberId, localClock, myStatus);
                 myStatus = ENOUGH_MONEY_STATUS;

@@ -26,6 +26,7 @@ A certain organization of retirees from time to time draws a small amount for it
     memberId - unikalny identyfikator emeryta
     preferedClubId - preferowane ID clubu z góry wylosowane
     localClock - lokalny zegar logiczny Lamporta
+    approveCount - zliczenie zezwoleń na wejście do klubu
 
     askTab[N] - tablica reprezentująca aktualny status innych emerytów:
         0 - READY_ASK_TAB - emeryt gotowy do zapytania
@@ -55,54 +56,44 @@ A certain organization of retirees from time to time draws a small amount for it
 ## Wątek odbierający wiadomości:
     I. Odbierz wiadomość od dowolnego odbiorcy, w zależności od [message]:
         1. ASK_TO_JOIN_MSG
+            Jeżeli status != ALONE lub GROUP_BREAK
+                1.1. Wyślij odrzucenie dołączenia do grupy
+            W przeciwnym przypadku 
+                1.2. Wyślij przyjęcie propozycji dołączenia
+                1.3. Zmień myStatus na MEMBER - uczestnik grupy
+
         2. CONFIRM_JOIN_MSG
+            Jeżeli status == LEADER lub ALONE
+                2.1. Dodaj do groupMoney kwotę emeryta którego przyjmujemy
+                2.2. Zmień w askTab pozycje danego emeryta na ACCEPT
+                2.3. Zmień status na ACCEPT_INVITATION
+                2.4. Zinkrementuj approveCount
+            Jeżeli status == MEMBER
+                2.5. Wyślij info o zerwaniu grupy, nie aktualne zaproszenie
+
         3. REJECT_JOIN_MSG
+            Jeżeli status == LEADER lub ALONE
+                3.1. Zmień w askTab pozycje danego emeryta na REJECT
+                3.2. Zmień status na REJECT_INVITATION
+
         4. GROUP_BREAK_MSG
+            Jeżeli status == MEMBER
+                4.1. Zmień status na GROUP_BREAK
+
         5. ASK_TO_ENTER_CLUB_MSG
+            Jeżeli status == ENOUGH_MONEY
+                5.1. Jeżeli różne numery klubów to wyślij pozwolenie na wejście do klubu
+                5.2.
+
         6. AGREE_TO_ENTER_CLUB_MSG
+            Jeżeli status == ENOUGH_MONEY
+                6.1. Zinkrementuj approveCount
+                6.2. Jeżeli approveCount == noMembers - 1
+                    Zmień status na ENTER_CLUB
+
         7. EXIT_CLUB_MSG
-
-        1. Jeżeli status jest ENOUGH_MONEY i wiadomość odebrana to ENTER_CLUB_QUERY
-            a. Jeżeli inny klub niż nasz wybrany
-                i. Wyślij zgodę na wejście do klubu
-            b. Jeżeli nasz
-                i. Jeżeli ich zegar jest większy od naszego wyślij zgodę
-        2. Jeżeli status jest inny od NO_GROUP i GROUP_BREAK oraz odebrana wiadomość  to GROUP_INVITE
-            a. Wyślij odrzucenie zaproszenia do grupy
-        3. Jeżeli status FOUNDER i odebrana wiadomość to GROUP_CONFIRMATION
-            a. Dodaj do groupMoney kwotę emeryta którego przyjmujemy
-            b. Zmień w tab pozycje danego emeryta na MY_GROUP
-        4. Jeżeli status FOUNDER i wiadomość to REJECT_INVITE_MSG
-            a. Oznacz w tab pozycje danego emeryta na NOT_MY_GROUP
-            b. Ustaw status na REJECT_INVITE
-        5. Jeżeli status ENOUGH_MONEY i wiadomość to ENTER_PERMISSION
-            a. Zwiększ approveCount
-            b. Jeżeli approveCount == N-1
-                i. Ustaw status na ENTER_CLUB
-        6. Jeżeli status jest inny od ENOUGH_MONEY i ENTER_CLUB oraz odebrana wiadomość to ENTER_CLUB_QUERY
-            a. Wyślij zgodę na wejście do klubu
-        7. Jeżeli status jest NO_GROUP lub GROUP_BREAK oraz wiadomość to GROUP_INVITE
-            a. Jak zegar odebrany jest mniejszy od naszego
-                i. Ustaw status na PARTICIPATOR
-                ii. Wyślij akceptacje zaproszenia
-            b. Jeśli zegar większy odrzuć zaproszenie
-        8. Jak status NO_GROUP i wiadomość to GROUP_CONFIRMATION
-            a. Zmień status na ACCEPT_INVITE
-            b. Oznacz w tab pozycje danego emeryta na MY_GROUP
-            c. Zwiększ groupMoney o kwotę zaakceptowanego emeryta
-        9. Jeżeli status NO_GROUP i odebrana wiadomość to REJECT_INVITE_MSG
-            a. Ustaw status na GROUP_BREAK
-            b. W tablicy tab ustaw pozycje danego emeryta na NOT_MY_GROUP
-        10. Jeżeli status PARTICIPATOR i odebrana wiadomość GROUP_CONFIRMATION
-            a. Odrzuć zaproszenie, bo należę do innej grupy
-        11. Jeżeli status PARTICIPTOR i odebrana wiadomość to GROUP_BREAK_MSG
-            a. Ustaw status na GROUP_BREAK
-        12. Jeżeli odebrana wiadomość EXIT_CLUB_MSG
-            a. Ustaw clubNumber = odebrany numer klubu
-            b. Ustaw status na EXIT_CLUB
-        13. Jeżeli status ENTER_CLUB i odebrana wiadomość ENTER_CLUB_QUERY
-            a. Jeżeli różne numery klubów to wyślij pozwolenie na wejście do klubu
-
+            7.1. Odczytaj do jakiego klubu idziemy
+            7.2. Zmień status na EXIT_CLUB
 
 ## Init Member:
     1. Każdy z emerytów dostaje losową kwotę pieniędzy [memberMoney] w zakresie < 1 ; (entryCost - 1) >.

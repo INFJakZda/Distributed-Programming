@@ -50,11 +50,18 @@ A certain organization of retirees from time to time draws a small amount for it
         3 - GROUP_BREAK_MSG 3
         4 - ASK_TO_ENTER_CLUB_MSG 4
         5 - AGREE_TO_ENTER_CLUB_MSG 5
-        6 - DISAGREE_TO_ENTER_CLUB_MSG 6
-        7 - EXIT_CLUB_MSG 7
+        6 - EXIT_CLUB_MSG 6
 
 ## Wątek odbierający wiadomości:
-    I. Odbierz wiadomość [message] od dowolnego odbiorcy:
+    I. Odbierz wiadomość od dowolnego odbiorcy, w zależności od [message]:
+        1. ASK_TO_JOIN_MSG
+        2. CONFIRM_JOIN_MSG
+        3. REJECT_JOIN_MSG
+        4. GROUP_BREAK_MSG
+        5. ASK_TO_ENTER_CLUB_MSG
+        6. AGREE_TO_ENTER_CLUB_MSG
+        7. EXIT_CLUB_MSG
+
         1. Jeżeli status jest ENOUGH_MONEY i wiadomość odebrana to ENTER_CLUB_QUERY
             a. Jeżeli inny klub niż nasz wybrany
                 i. Wyślij zgodę na wejście do klubu
@@ -98,22 +105,22 @@ A certain organization of retirees from time to time draws a small amount for it
 
 
 ## Init Member:
-    1. Każdy z emerytów dostaje losową kwotę pieniędzy [memberMoney] w zakresie < 1 ; (entryCost - 1) > po losowym czasie.
+    1. Każdy z emerytów dostaje losową kwotę pieniędzy [memberMoney] w zakresie < 1 ; (entryCost - 1) >.
     2. groupMoney = memberMoney
     3. myStatus = ALONE_STATUS.
     4. Losowe wybranie klubu które wybierze emeryt gdy będzie liderem grupy. [preferedClubId].
-    5. Ustawienie wszystkich wartości tablicy [askTab] na READY_ASK_TAB. 
+    5. Ustawienie wszystkich wartości tablicy [askTab] na READY_ASK_TAB.
         5.1. askTab[memberId] = ACCEPT_ASK_TAB.
 
 ## Wątek główny:
     I. Rozpoczęcie wątku po losowym czasie z zakesu < 0 ; noMembers >, co pozwoli na łączenie się w grupy, gdyż wątek odbierający wiadomości już nasłuchuje.
         1.1. localClock = wyslosowany czas (rozpoczęcia wątku).
 
-    II. Init Member - wywołanie inicjalizacji.
+    II. Init Member - wywołanie inicjalizacji - wyzerowanie zmiennych.
 
     III. Dopóki: askTab zawiera READY_ASK_TAB - gotowy do zapytania:
         1. Wyślij zapytanie o dołączenie do grupy [ASK_TO_JOIN_MSG] do dowolnego emeryta z wartością [READY_ASK_TAB] w askTab.
-        2. Zaczekaj dopóki nie zmieni się stan z następujących stanów 
+        2. Zaczekaj dopóki nie zmieni się stan z następujących stanów
             2.1. ALONE_STATUS - rozpoczęcie wątku, czekanie na odpowiedź zaproszenia do grupy,
             2.2. LEADER_STATUS - założyciel grupy, czekanie na odpowiedź,
             2.3. MEMBER_STATUS - uczestnik grupy, czekanie na wejście do klubu,
@@ -127,11 +134,19 @@ A certain organization of retirees from time to time draws a small amount for it
             GROUP_BREAK_STATUS:
                 1. groupMoney = memberMoney;
                 2. zmień myStatus na ALONE_STATUS
+                3. Idź do pkt II.
             EXIT_CLUB_STATUS:
                 1. Idź do pkt II.
-            
-    IV. 
+        Jeżeli tu jesteś to kontynuuj -> pkt III.1.
 
+    IV. Obsługa decyzji liderów - wybór klubu / rozwiązanie grupy
+        1. Jeżeli groupMoney < entryCost
+            1.1 Wyślij każdemu z grupy (askTab == ACCEPT) info o rozwiązaniu grupy
+        2. Jeżeli groupMoney > entryCost
+            2.1. Spytaj się wszystkich spoza grupy czy moja grupa może wejść do klubu.
+            2.2. Czekaj na pozwolenie od wszystkich zapytanych.
+            2.3. Wyślij pozwolenie na wejście do klubu do wszystkich z mojej grupy.
+            2.4. Wyślij wszystkim spoza grupy info o tym że moja grupa wyszła z klubu.
 
 ## Złożoność
 

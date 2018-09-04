@@ -18,7 +18,6 @@ int myStatus = 0;
 //TYPE OF PACKAGE SENDING BETWEEN MEMBERS
 MPI_Datatype mpiMsgType;
 
-
 int main(int argc, char *argv[])
 {
     /* READ K & M FROM argv */

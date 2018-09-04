@@ -58,8 +58,7 @@ extern int myStatus;
 #define GROUP_BREAK_MSG 3
 #define ASK_TO_ENTER_CLUB_MSG 4
 #define AGREE_TO_ENTER_CLUB_MSG 5
-#define DISAGREE_TO_ENTER_CLUB_MSG 6
-#define EXIT_CLUB_MSG 7
+#define EXIT_CLUB_MSG 6
 
 //TYPE OF PACKAGE SENDING BETWEEN MEMBERS
 extern MPI_Datatype mpiMsgType;
@@ -72,7 +71,6 @@ typedef struct msg_s
     int preferedClubId;
     int memberMoney;
 } msg;
-
 
 /* FUNCTIONS */
 int max(int, int);

@@ -123,6 +123,7 @@ void *threadFunc()
             myStatus = EXIT_CLUB_STATUS;
             break;
         }
+        pthread_cond_signal(&cond1);
     }
     pthread_exit(NULL);
 }

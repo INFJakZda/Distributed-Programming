@@ -1,9 +1,12 @@
 all: program
-program: help.o mainLoop.o threadFunc.o
-	mpicc -lpthread -Wall help.o mainLoop.o threadFunc.o main.c -o program.exe
+program: help.o leader.o mainLoop.o threadFunc.o
+	mpicc -lpthread -Wall help.o mainLoop.o threadFunc.o leader.o main.c -o program.exe
 
 help.o: help.c
 	mpicc -c -Wall help.c -o help.o
+
+leader.o: leader.c
+	mpicc -c -Wall leader.c -o leader.o
 
 mainLoop.o: mainLoop.c
 	mpicc -c -Wall mainLoop.c -o mainLoop.o

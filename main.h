@@ -72,6 +72,11 @@ typedef struct msg_s
     int memberMoney;
 } msg;
 
+// Declaration of thread condition variable
+extern pthread_cond_t cond1;
+// declaring mutex
+extern pthread_mutex_t lock;
+
 /* FUNCTIONS */
 int max(int, int);
 msg createPackage(int, int, int, int, int);
@@ -80,5 +85,6 @@ void initMember();
 bool isNotEmptyTab();
 int getRandomMemberID();
 void mainLoop();
+void leader_func(msg);
 
 #endif

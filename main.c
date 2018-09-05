@@ -18,6 +18,11 @@ int myStatus = 0;
 //TYPE OF PACKAGE SENDING BETWEEN MEMBERS
 MPI_Datatype mpiMsgType;
 
+// Declaration of thread condition variable
+pthread_cond_t cond1 = PTHREAD_COND_INITIALIZER;
+// declaring mutex
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
 int main(int argc, char *argv[])
 {
     /* READ K & M FROM argv */
